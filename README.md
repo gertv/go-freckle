@@ -1,4 +1,6 @@
 This project is a Go client to access the Freckle API V2.
+[![GoDoc](https://godoc.org/github.com/gertv/go-freckle?status.svg)](https://godoc.org/github.com/gertv/go-freckle)
+
 
 Getting started
 ---------------
