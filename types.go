@@ -37,6 +37,18 @@ type Invoice struct {
 	Url    string  `json:"url,omitempty"`
 }
 
+// Error type returned by Freckle API
+type FreckleError struct {
+	Message string               `json:"message,omitempty"`
+	Errors  []FreckleErrorDetail `json:"errors,omitempty"`
+}
+
+type FreckleErrorDetail struct {
+	Code     string `json:"code,omitempty"`
+	Field    string `json:"field,omitempty"`
+	Resource string `json:"resource,omitempty"`
+}
+
 type Participant struct {
 	Id              int    `json:"id,omitempty"`
 	Email           string `json:"email,omitempty"`

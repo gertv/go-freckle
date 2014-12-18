@@ -54,6 +54,11 @@ func (f Freckle) ProjectsAPI() ProjectsAPI {
 	return ProjectsAPI{&f}
 }
 
+// Get the error message for a Freckle API error
+func (e FreckleError) Error() string {
+	return e.Message
+}
+
 // Data type to represent values passed to a create, edit, ... calls
 type Inputs map[string]interface{}
 

@@ -5,13 +5,14 @@
 package freckle
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestListProfiles(t *testing.T) {
+func TestListProjects(t *testing.T) {
 	ts := httptest.NewServer(authenticated(t, "GET", "/projects", response(array_of_projects)))
 	defer ts.Close()
 
@@ -20,6 +21,44 @@ func TestListProfiles(t *testing.T) {
 	projects, err := f.ProjectsAPI().ListProjects()
 	assert.Nil(t, err, "Error should be nil")
 	assert.Equal(t, 1, len(projects), "Should have one project")
+}
+
+func TestListProjectsWithParameters(t *testing.T) {
+	ts := httptest.NewServer(authenticated(t, "GET", "/projects", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "true", r.URL.Query().Get("billable"))
+		assert.Equal(t, "2014-12-18", r.URL.Query().Get("from"))
+		response(array_of_projects)(w, r)
+	}))
+	defer ts.Close()
+
+	f := letsTestFreckle(ts)
+
+	projects, err := f.ProjectsAPI().ListProjects(func(p Parameters) {
+		p["billable"] = "true"
+		p["from"] = "2014-12-18"
+	})
+	assert.Nil(t, err, "Error should be nil")
+	assert.Equal(t, 1, len(projects), "Should have one project")
+}
+
+func TestListProjectsWithInvalidParameters(t *testing.T) {
+	ts := httptest.NewServer(authenticated(t, "GET", "/projects", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(400)
+		response(invalid_billing_code)(w, r)
+	}))
+	defer ts.Close()
+
+	f := letsTestFreckle(ts)
+
+	_, err := f.ProjectsAPI().ListProjects(func(p Parameters) {
+		p["billable"] = "beer"
+	})
+	assert.NotNil(t, err, "Error should not be nil")
+	if fe, ok := err.(FreckleError); ok {
+		assert.Equal(t, fe.Message, "Validation Failed")
+	} else {
+		t.Errorf("Expected a FreckleError but got %s", err)
+	}
 }
 
 func TestGetProject(t *testing.T) {
@@ -445,3 +484,8 @@ const participants_for_project = `[
     "updated_at": "2010-06-09T20:44:57Z"
   }
 ]`
+
+const invalid_billing_code = `{
+	"errors":[{"code":"not_an_accepted_value","field":"billable","resource":"Project"}],
+	"message":"Validation Failed"
+}`

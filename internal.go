@@ -34,18 +34,16 @@ func (f Freckle) doHttpRequest(req *http.Request, fn onResponse) error {
 	f.log("Response: HTTP " + resp.Status)
 	f.log("   %s", data)
 
+	if resp.StatusCode >= 400 {
+		return parseError(data, resp)
+	}
+
 	return fn(data, resp)
 }
 
+//
 func (f Freckle) do(method, uri string, ps Parameters, is Inputs, fn onResponse) error {
-	u := f.api(uri)
-	if ps != nil {
-		var v url.Values = make(url.Values)
-		for key, value := range ps {
-			v.Set(key, value)
-		}
-		u = fmt.Sprintf("%s?%s", u, v.Encode())
-	}
+	u := f.api(uri, ps)
 	f.log("Request: HTTP %s %s", method, u)
 
 	var b io.Reader
@@ -66,24 +64,46 @@ func (f Freckle) do(method, uri string, ps Parameters, is Inputs, fn onResponse)
 	return f.doHttpRequest(req, fn)
 }
 
+// Try to parse the data into a FreckleError object
+func parseError(data []byte, resp *http.Response) error {
+	var result FreckleError
+	err := json.Unmarshal(data, &result)
+	if err == nil {
+		return result
+	} else {
+		return err
+	}
+}
+
+// Apply a slice of ParameterSetter functions to create a Parameters instance
 func parameters(fns []ParameterSetter) Parameters {
-	result := make(map[string]string)
+	result := make(Parameters)
 	for _, fn := range fns {
 		fn(result)
 	}
 	return result
 }
 
+// Apply a slice of InputSetter functions to create an Inputs instance
 func inputs(fns []InputSetter) Inputs {
-	result := make(map[string]interface{})
+	result := make(Inputs)
 	for _, fn := range fns {
 		fn(result)
 	}
 	return result
 }
 
-func (f Freckle) api(path string) string {
-	return fmt.Sprintf("%s%s", f.base, path)
+// Get the full API URL for a URL path and parameters
+func (f Freckle) api(path string, ps Parameters) string {
+	u := fmt.Sprintf("%s%s", f.base, path)
+	if ps != nil && len(ps) > 0 {
+		var v url.Values = make(url.Values)
+		for key, value := range ps {
+			v.Set(key, value)
+		}
+		u = fmt.Sprintf("%s?%s", u, v.Encode())
+	}
+	return u
 }
 
 // Extract body from the HTTP response

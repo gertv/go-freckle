@@ -48,5 +48,4 @@ There's still some work to be done:
   * Project Groups
   * ... (whatever else becomes availlable)
 * Implement pagination for the `List...` methods
-* Handling errors from the API
 * Adding DSL methods for `Inputs` and `Parameters`
