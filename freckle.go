@@ -2,12 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-/*
-This package implements a Go client for the Freckle V2 API.
-
-More information about the API itself can be found at
-http://developer.letsfreckle.com/v2/
-*/
+// This package implements a Go client for the Freckle V2 API.
+//
+// More information about the API itself can be found at
+// http://developer.letsfreckle.com/v2/
 package freckle
 
 import (
