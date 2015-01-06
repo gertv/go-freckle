@@ -5,6 +5,7 @@
 package freckle
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,14 +14,48 @@ import (
 )
 
 func TestListProjects(t *testing.T) {
-	ts := httptest.NewServer(authenticated(t, "GET", "/projects", response(array_of_projects)))
+	var ts *httptest.Server
+	ts = httptest.NewServer(authenticated(t, "GET", "/projects", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Link", fmt.Sprintf("<%s%s?page=2>; rel=\"next\"", ts.URL, r.URL.Path))
+		response(array_of_projects)(w, r)
+	}))
 	defer ts.Close()
 
 	f := letsTestFreckle(ts)
 
-	projects, err := f.ProjectsAPI().ListProjects()
+	page, err := f.ProjectsAPI().ListProjects()
 	assert.Nil(t, err, "Error should be nil")
-	assert.Equal(t, 1, len(projects), "Should have one project")
+	assert.Equal(t, 1, len(page.Projects), "Should have one project")
+	assert.True(t, page.HasNext(), "There should be a next page")
+
+	page, err = page.Next()
+	assert.Nil(t, err, "Error should be nil")
+	assert.Equal(t, 1, len(page.Projects), "Should have one project")
+}
+
+func TestListProjectsThroughChannel(t *testing.T) {
+	page := 0
+	var ts *httptest.Server
+	ts = httptest.NewServer(authenticated(t, "GET", "/projects", func(w http.ResponseWriter, r *http.Request) {
+		page += 1
+		if page < 10 {
+			w.Header().Set("Link", fmt.Sprintf("<%s%s?page=%d>; rel=\"next\"", ts.URL, r.URL.Path, page+1))
+		}
+		response(array_of_projects)(w, r)
+	}))
+	defer ts.Close()
+
+	f := letsTestFreckle(ts)
+
+	pp, err := f.ProjectsAPI().ListProjects()
+	assert.Nil(t, err, "Error should be nil")
+	projects := 0
+	// reading through the channel should do 10 HTTP request, yielding 1 project each
+	for _ = range pp.AllProjects() {
+		projects += 1
+	}
+	assert.Equal(t, 10, projects, "Should have read 10 projects")
+	assert.Equal(t, 10, page, "We should have read up to page 10")
 }
 
 func TestListProjectsWithParameters(t *testing.T) {
@@ -33,12 +68,12 @@ func TestListProjectsWithParameters(t *testing.T) {
 
 	f := letsTestFreckle(ts)
 
-	projects, err := f.ProjectsAPI().ListProjects(func(p Parameters) {
+	page, err := f.ProjectsAPI().ListProjects(func(p Parameters) {
 		p["billable"] = "true"
 		p["from"] = "2014-12-18"
 	})
 	assert.Nil(t, err, "Error should be nil")
-	assert.Equal(t, 1, len(projects), "Should have one project")
+	assert.Equal(t, 1, len(page.Projects), "Should have one project")
 }
 
 func TestListProjectsWithInvalidParameters(t *testing.T) {
@@ -87,9 +122,9 @@ func TestGetEntries(t *testing.T) {
 
 	f := letsTestFreckle(ts)
 
-	entries, err := f.ProjectsAPI().GetEntries(37396)
+	page, err := f.ProjectsAPI().GetEntries(37396)
 	assert.Nil(t, err, "Error should be nil")
-	assert.Equal(t, 1, len(entries), "Should have one entry")
+	assert.Equal(t, 1, len(page.Entries), "Should have one entry")
 }
 
 func TestGetInvoices(t *testing.T) {

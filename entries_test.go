@@ -5,6 +5,8 @@
 package freckle
 
 import (
+	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -12,14 +14,52 @@ import (
 )
 
 func TestListEntries(t *testing.T) {
-	ts := httptest.NewServer(authenticated(t, "GET", "/entries", response(array_of_entries)))
+	var ts *httptest.Server
+	ts = httptest.NewServer(authenticated(t, "GET", "/entries", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Link", fmt.Sprintf("<%s%s?page=2>; rel=\"next\"", ts.URL, r.URL.Path))
+		response(array_of_entries)(w, r)
+	}))
 	defer ts.Close()
 
 	f := letsTestFreckle(ts)
 
-	entries, err := f.EntriesAPI().ListEntries()
+	page, err := f.EntriesAPI().ListEntries()
 	assert.Nil(t, err, "Error should be nil")
-	assert.Equal(t, 1, len(entries), "Should have one entry")
+	assert.Equal(t, 1, len(page.Entries), "Should have one entry")
+	assert.True(t, page.HasNext(), "Should have a next page")
+	assert.False(t, page.HasPrevious(), "Should not have a previous page")
+
+	// Next() will just go back to the same server for now - just a first test for pagination
+	page, err = page.Next()
+	assert.Nil(t, err, "Error should be nil")
+	assert.Equal(t, 1, len(page.Entries), "Should have one entry")
+	assert.True(t, page.HasNext(), "Should have a next page")
+	assert.False(t, page.HasPrevious(), "Should not have a previous page")
+}
+
+func TestListEntriesThroughChannel(t *testing.T) {
+	page := 0
+
+	var ts *httptest.Server
+	ts = httptest.NewServer(authenticated(t, "GET", "/entries", func(w http.ResponseWriter, r *http.Request) {
+		page = page + 1
+		if page < 10 {
+			w.Header().Set("Link", fmt.Sprintf("<%s%s?page=%d>; rel=\"next\"", ts.URL, r.URL.Path, page+1))
+		}
+		response(array_of_entries)(w, r)
+	}))
+	defer ts.Close()
+
+	f := letsTestFreckle(ts)
+
+	items := 0
+	ep, err := f.EntriesAPI().ListEntries()
+	assert.Nil(t, err, "Error should be nil")
+	// now let's read from the channel - it should go back to the server to fetch the next pages
+	for _ = range ep.AllEntries() {
+		items = items + 1
+	}
+	assert.Equal(t, 10, items, "Should have read 10 pages with 1 item each")
 }
 
 func TestGetEntry(t *testing.T) {

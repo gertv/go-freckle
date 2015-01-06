@@ -14,12 +14,23 @@ type EntriesAPI struct {
 	freckle *Freckle
 }
 
-func (e EntriesAPI) ListEntries(fns ...ParameterSetter) ([]Entry, error) {
-	var result []Entry
-	return result, e.freckle.do("GET", "/entries", parameters(fns), nil,
-		func(data []byte, resp *http.Response) error {
-			return json.Unmarshal(data, &result)
-		})
+func (e EntriesAPI) ListEntries(fns ...ParameterSetter) (EntriesPage, error) {
+	result := emptyEntriesPage(e.freckle)
+	return result, e.freckle.do("GET", "/entries", parameters(fns), nil, result.onResponse)
+}
+
+func emptyEntriesPage(f *Freckle) EntriesPage {
+	return EntriesPage{freckle: f}
+}
+
+func (p *EntriesPage) onResponse(data []byte, resp *http.Response) error {
+	links := pagelinks(resp.Header.Get("Link"))
+	var entries []Entry
+
+	err := json.Unmarshal(data, &entries)
+	p.links = links
+	p.Entries = entries
+	return err
 }
 
 func (e EntriesAPI) GetEntry(id int) (Entry, error) {

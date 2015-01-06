@@ -14,12 +14,23 @@ type ProjectsAPI struct {
 	freckle *Freckle
 }
 
-func (p ProjectsAPI) ListProjects(fns ...ParameterSetter) ([]Project, error) {
-	var result []Project
-	return result, p.freckle.do("GET", "/projects", parameters(fns), nil,
-		func(data []byte, resp *http.Response) error {
-			return json.Unmarshal(data, &result)
-		})
+func (p ProjectsAPI) ListProjects(fns ...ParameterSetter) (ProjectsPage, error) {
+	result := emptyProjectsPage(p.freckle)
+	return result, p.freckle.do("GET", "/projects", parameters(fns), nil, result.onResponse)
+}
+
+func emptyProjectsPage(f *Freckle) ProjectsPage {
+	return ProjectsPage{freckle: f}
+}
+
+func (p *ProjectsPage) onResponse(data []byte, resp *http.Response) error {
+	links := pagelinks(resp.Header.Get("Link"))
+	var projects []Project
+
+	err := json.Unmarshal(data, &projects)
+	p.links = links
+	p.Projects = projects
+	return err
 }
 
 func (p ProjectsAPI) GetProject(id int) (Project, error) {
@@ -41,12 +52,9 @@ func (p ProjectsAPI) CreateProject(name string, fns ...InputSetter) (Project, er
 		})
 }
 
-func (p ProjectsAPI) GetEntries(id int) ([]Entry, error) {
-	var result []Entry
-	return result, p.freckle.do("GET", fmt.Sprintf("/projects/%d/entries", id), nil, nil,
-		func(data []byte, resp *http.Response) error {
-			return json.Unmarshal(data, &result)
-		})
+func (p ProjectsAPI) GetEntries(id int) (EntriesPage, error) {
+	result := emptyEntriesPage(p.freckle)
+	return result, p.freckle.do("GET", fmt.Sprintf("/projects/%d/entries", id), nil, nil, result.onResponse)
 }
 
 func (p ProjectsAPI) GetInvoices(id int) ([]Invoice, error) {

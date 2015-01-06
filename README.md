@@ -47,5 +47,4 @@ There's still some work to be done:
   * Expenses
   * Project Groups
   * ... (whatever else becomes availlable)
-* Implement pagination for the `List...` methods
 * Adding DSL methods for `Inputs` and `Parameters`

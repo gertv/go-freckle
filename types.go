@@ -24,6 +24,12 @@ type Entry struct {
 	UpdatedAt   string         `json:"updated_at,omitempty"`
 }
 
+type EntriesPage struct {
+	links   map[string]string
+	freckle *Freckle
+	Entries []Entry
+}
+
 type Import struct {
 	Id  int    `json:"id,omitempty"`
 	Url string `json:"url,omitempty"`
@@ -82,6 +88,12 @@ type Project struct {
 	ExpensesUrl       string        `json:"expenses_url,omitempty"`
 	CreatedAt         string        `json:"created_at,omitempty"`
 	UpdatedAt         string        `json:"updated_at,omitempty"`
+}
+
+type ProjectsPage struct {
+	links    map[string]string
+	freckle  *Freckle
+	Projects []Project
 }
 
 type ProjectGroup struct {

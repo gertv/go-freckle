@@ -17,6 +17,8 @@ import (
 type onResponse func([]byte, *http.Response) error
 
 func (f Freckle) doHttpRequest(req *http.Request, fn onResponse) error {
+	f.log("Request: HTTP %s %s", req.Method, req.URL)
+
 	req.Header.Add("User-Agent", f.subdomain)
 	req.Header.Add("X-FreckleToken", f.key)
 
@@ -32,6 +34,9 @@ func (f Freckle) doHttpRequest(req *http.Request, fn onResponse) error {
 	}
 
 	f.log("Response: HTTP " + resp.Status)
+	for key, value := range resp.Header {
+		f.log("   %s: %s", key, value)
+	}
 	f.log("   %s", data)
 
 	if resp.StatusCode >= 400 {
@@ -44,7 +49,6 @@ func (f Freckle) doHttpRequest(req *http.Request, fn onResponse) error {
 //
 func (f Freckle) do(method, uri string, ps Parameters, is Inputs, fn onResponse) error {
 	u := f.api(uri, ps)
-	f.log("Request: HTTP %s %s", method, u)
 
 	var b io.Reader
 	if is != nil {
