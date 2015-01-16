@@ -28,7 +28,7 @@ import (
 )
 
 func main() {
-  f := LetsFreckle("mycompany", "MyFreckleAPIV2Token")
+  f := freckle.LetsFreckle("mycompany", "MyFreckleAPIV2Token")
 
   // once you have the Freckle object, just start using the API
   // through one of the ...API() functions
