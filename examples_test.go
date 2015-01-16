@@ -2,16 +2,18 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package freckle
+package freckle_test
 
 import (
 	"fmt"
+
+	"github.com/gertv/go-freckle"
 )
 
 // To get started with the API, use the LetsFreckle function
 // and pass your domain and the Freckle V2 API token
 func Example() {
-	f := LetsFreckle("mycompany", "MyFreckleAPIV2Token")
+	f := freckle.LetsFreckle("mycompany", "MyFreckleAPIV2Token")
 
 	// once you have the Freckle object, just start using the API
 	// through one of the ...API() functions
