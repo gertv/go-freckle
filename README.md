@@ -36,6 +36,36 @@ func main() {
 }
 ```
 
+Tips and tricks
+---------------
+
+#### Google Appengine
+
+If you're using this on Google's AppEngine, you also need to configure the `appengine/urlfetch` HTTP Client.
+```Go
+package main
+
+import (
+  "appengine"
+  "appengine/urlfetch"
+  "http"
+  
+  "github.com/gertv/go-freckle"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+  c := appengine.NewContext(r)
+  
+  f := freckle.LetsFreckle("mycompany", "MyFreckleAPIV2Token")
+  // this line configure the Freckle client to use the urlfetch HTTP client
+  f.Client(urlfetch.Client(c))
+
+  // once you have the Freckle object, just start using the API
+  // through one of the ...API() functions
+  f.EntriesAPI().ListEntries()
+}
+```
+
 
 TODO
 ----
