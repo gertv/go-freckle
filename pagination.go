@@ -163,7 +163,7 @@ func (p ProjectsPage) fetch(id string) (ProjectsPage, error) {
 // parse pagination links out of link header text
 func pagelinks(header string) map[string]string {
 	result := make(map[string]string)
-	re := regexp.MustCompile("<(.*)>; rel=\"(.*)\"")
+	re := regexp.MustCompile("<(.*?)>; rel=\"(.*?)\"")
 	for _, line := range re.FindAllStringSubmatch(header, -1) {
 		rel := line[2]
 		url := line[1]
