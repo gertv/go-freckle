@@ -36,11 +36,12 @@ type Import struct {
 }
 
 type Invoice struct {
-	Id     int     `json:"id,omitempty"`
-	Number string  `json:"number,omitempty"`
-	State  string  `json:"state,omitempty"`
-	Total  float64 `json:"number,omitempty"`
-	Url    string  `json:"url,omitempty"`
+	Id          int     `json:"id,omitempty"`
+	Reference   string  `json:"reference,omitempty"`
+	InvoiceDate string  `json:"invoice_date,omitempty"`
+	State       string  `json:"state,omitempty"`
+	TotalAmount float64 `json:"total_amount,omitempty"`
+	Url         string  `json:"url,omitempty"`
 }
 
 // Error type returned by Freckle API

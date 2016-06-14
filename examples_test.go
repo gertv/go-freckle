@@ -23,8 +23,8 @@ func Example() {
 // Some functions, like create and edit functions, require
 // additional input. This input can be provided through an
 // anonymous function to add values to the Inputs object.
-func ExampleInputSetter(f Freckle) {
-	f.EntriesAPI().CreateEntry("2014-12-22", 60, func(i Inputs) {
+func ExampleInputSetter(f freckle.Freckle) {
+	f.EntriesAPI().CreateEntry("2014-12-22", 60, func(i freckle.Inputs) {
 		// here you can add addtional input data to your API call
 		i["description"] = "My neat #development issue"
 		i["project_name"] = "Customer Project"
@@ -34,8 +34,8 @@ func ExampleInputSetter(f Freckle) {
 // Some functions, like the query functions, require
 // additional parameters. These parameters can be provided through
 // an anonymous function to add values to the Parameters object.
-func ExampleParameterSetter(f Freckle) {
-	f.EntriesAPI().ListEntries(func(p Parameters) {
+func ExampleParameterSetter(f freckle.Freckle) {
+	f.EntriesAPI().ListEntries(func(p freckle.Parameters) {
 		// here you can add addtional parameter data to your API call
 		p["from"] = "2014-11-01"
 		p["to"] = "2014-11-30"
@@ -43,7 +43,7 @@ func ExampleParameterSetter(f Freckle) {
 }
 
 // Basic example for working with project pages
-func ExampleProjectsPage(f Freckle) {
+func ExampleProjectsPage(f freckle.Freckle) {
 	page, _ := f.ProjectsAPI().ListProjects()
 
 	// the Projects field contains all the projects on the current page
@@ -61,7 +61,7 @@ func ExampleProjectsPage(f Freckle) {
 // projects on the current and subsequent pages through a channel.
 // Subsequent pages will automatically get retrieved when reading through
 // the end of the previous page
-func ExampleProjectsPage_AllProjects(f Freckle) {
+func ExampleProjectsPage_AllProjects(f freckle.Freckle) {
 	page, _ := f.ProjectsAPI().ListProjects()
 
 	// The AllProjects() method returns a convenient channel to read all projects
