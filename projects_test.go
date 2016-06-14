@@ -27,6 +27,11 @@ func TestListProjects(t *testing.T) {
 	assert.Nil(t, err, "Error should be nil")
 	assert.Equal(t, 1, len(page.Projects), "Should have one project")
 	assert.True(t, page.HasNext(), "There should be a next page")
+	project := page.Projects[0]
+	assert.Equal(t, 1, len(project.Invoices), "Should have one invoice")
+	invoice := project.Invoices[0]
+	assert.Equal(t, "AA001", invoice.Reference, "Invoice reference mismatch")
+	assert.Equal(t, 189.33, invoice.TotalAmount, "Invoice total_amount mismatch")
 
 	page, err = page.Next()
 	assert.Nil(t, err, "Error should be nil")
@@ -56,6 +61,7 @@ func TestListProjectsThroughChannel(t *testing.T) {
 	}
 	assert.Equal(t, 10, projects, "Should have read 10 projects")
 	assert.Equal(t, 10, page, "We should have read up to page 10")
+
 }
 
 func TestListProjectsWithParameters(t *testing.T) {
@@ -258,9 +264,10 @@ const array_of_projects = `[
     "invoices": [
       {
         "id": 12345678,
-        "number": "AA001",
+        "reference": "AA001",
+        "invoice_date": "2013-07-09",
         "state": "unpaid",
-        "total": 189.33,
+        "total_amount": 189.33,
         "url": "https://api.letsfreckle.com/v2/invoices/12345678"
       }
     ],
@@ -309,9 +316,10 @@ const single_project = `{
   "invoices": [
     {
       "id": 12345678,
-      "number": "AA001",
+      "reference": "AA001",
+      "invoice_date": "2013-07-09",
       "state": "unpaid",
-      "total": 189.33,
+      "total_amount": 189.33,
       "url": "https://api.letsfreckle.com/v2/invoices/12345678"
     }
   ],
@@ -369,9 +377,10 @@ const entries_for_project = `[
     "invoiced_at": "2012-01-10T08:33:29Z",
     "invoice": {
       "id": 12345678,
-      "number": "AA001",
+      "reference": "AA001",
+      "invoice_date": "2013-07-09",
       "state": "unpaid",
-      "total": 189.33,
+      "total_amount": 189.33,
       "url": "https://api.letsfreckle.com/v2/invoices/12345678"
     },
     "import": {
